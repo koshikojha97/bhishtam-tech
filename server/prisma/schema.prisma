@@ -1,0 +1,260 @@
+// Bhishtam Tech — database schema (PostgreSQL).
+// Mirrors the dashboard's data model in client/src/lib/store.ts so the frontend can move from demo
+// data to this API endpoint by endpoint. Run `npm run prisma:migrate` after editing.
+
+// Prisma 7: the client is generated into src/generated/prisma (gitignored); the connection URL
+// lives in prisma.config.ts, and src/lib/prisma.ts connects through the pg driver adapter.
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Role {
+  ADMIN
+  ANALYST
+  RESPONDER
+  VIEWER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+/// A dashboard login. Profile fields match the Settings → Edit Profile form.
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  username     String       @unique
+  jobTitle     String?
+  company      String?
+  phone        String?
+  city         String?
+  country      String?
+  avatarUrl    String?
+  role         Role         @default(VIEWER)
+  status       MemberStatus @default(ACTIVE)
+  mfaEnabled   Boolean      @default(false)
+  lastActiveAt DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  incidents     Incident[]
+  notifications Notification[]
+  preferences   Preferences?
+}
+
+model Preferences {
+  userId               String   @id
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeZone             String   @default("UTC")
+  alertThreshold       Severity @default(HIGH)
+  notifyCritical       Boolean  @default(true)
+  notifyWeeklyReport   Boolean  @default(true)
+  notifyProductUpdates Boolean  @default(false)
+}
+
+enum AlertCategory {
+  MALWARE
+  PHISHING
+  INTRUSION
+  DDOS
+  BRUTE_FORCE
+  DATA_EXFILTRATION
+}
+
+enum AlertStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+}
+
+enum AlertSource {
+  FIREWALL
+  EDR
+  EMAIL_GATEWAY
+  WAF
+  IDS
+  SIEM
+}
+
+/// A detection from a security sensor (Threats page).
+model Alert {
+  id         String        @id @default(cuid())
+  ref        String        @unique // "ALR-20931"
+  title      String
+  category   AlertCategory
+  severity   Severity
+  status     AlertStatus   @default(OPEN)
+  source     AlertSource
+  assetName  String
+  sourceIp   String
+  country    String
+  detectedAt DateTime      @default(now())
+  incidentId String?
+  incident   Incident?     @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+
+  @@index([status, severity])
+  @@index([detectedAt])
+}
+
+enum AssetType {
+  SERVER
+  DATABASE
+  CLOUD
+  NETWORK
+  APPLICATION
+}
+
+enum Environment {
+  PRODUCTION
+  STAGING
+  DEVELOPMENT
+}
+
+enum AssetStatus {
+  PROTECTED
+  AT_RISK
+  OFFLINE
+}
+
+/// Monitored infrastructure (Assets page).
+model Asset {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  type            AssetType
+  ip              String
+  environment     Environment
+  owner           String
+  risk            Int             @default(20) // 0–100
+  status          AssetStatus     @default(PROTECTED)
+  lastScanAt      DateTime?
+  createdAt       DateTime        @default(now())
+  vulnerabilities Vulnerability[]
+}
+
+enum DeviceKind {
+  LAPTOP
+  DESKTOP
+  MOBILE
+  SERVER
+}
+
+enum DeviceStatus {
+  HEALTHY
+  AT_RISK
+  ISOLATED
+}
+
+/// Endpoint running the agent (Devices page).
+model Device {
+  id           String       @id @default(cuid())
+  hostname     String       @unique
+  userName     String
+  kind         DeviceKind
+  os           String
+  status       DeviceStatus @default(HEALTHY)
+  encrypted    Boolean      @default(false)
+  agentVersion String
+  threats30d   Int          @default(0)
+  lastSeenAt   DateTime     @default(now())
+  enrolledAt   DateTime     @default(now())
+}
+
+enum VulnStatus {
+  OPEN
+  IN_PROGRESS
+  PATCHED
+}
+
+model Vulnerability {
+  id           String     @id @default(cuid())
+  cve          String
+  title        String
+  severity     Severity
+  cvss         Decimal    @db.Decimal(3, 1)
+  status       VulnStatus @default(OPEN)
+  fixAvailable Boolean    @default(false)
+  discoveredAt DateTime   @default(now())
+  patchedAt    DateTime?
+  assetId      String
+  asset        Asset      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([cve, assetId])
+  @@index([status, severity])
+}
+
+enum IncidentStatus {
+  OPEN
+  CONTAINED
+  RESOLVED
+}
+
+model Incident {
+  id             String         @id @default(cuid())
+  ref            String         @unique // "INC-1047"
+  title          String
+  summary        String
+  severity       Severity
+  status         IncidentStatus @default(OPEN)
+  progress       Int            @default(0) // response playbook completion, 0–100
+  affectedAssets Int            @default(1)
+  ownerId        String?
+  owner          User?          @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  alerts         Alert[]
+  openedAt       DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+enum ServiceId {
+  SOC
+  PENTEST
+  CLOUD
+  EMAIL
+  ENDPOINT
+  TRAINING
+}
+
+/// Active service subscriptions (Services page). The catalogue itself lives in the frontend.
+model Subscription {
+  service   ServiceId @id
+  startedAt DateTime  @default(now())
+}
+
+enum NotificationKind {
+  THREAT
+  INCIDENT
+  VULNERABILITY
+  DEVICE
+  SECURITY
+  INFO
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      NotificationKind
+  title     String
+  body      String
+  href      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+}

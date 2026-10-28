@@ -1,0 +1,337 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * BankDash design tokens — extracted from Figma "Admin-Dashboard-UI".
+ * Use as Tailwind utilities: bg-bd-page, text-bd-primary, text-bd-muted, etc.
+ */
+@theme {
+  /* ───── Marketing site ("Cybersecurity X" Figma) tokens — used under app/(site) ───── */
+  --color-cx-bg: #010101;          /* Sections/BG Color 1 */
+  --color-cx-bg-2: #0c0c0c;        /* Sections/BG Color 2 */
+  --color-cx-line: #212121;        /* Cards/Borders/BR Color 1, Neutrals/300 */
+  --color-cx-card: #0c0c0c;
+  --color-cx-accent: #e12632;      /* Accent */
+  --color-cx-text: #ffffff;
+  --color-cx-muted: #bebebe;       /* Neutrals/500, Text Neutral Light */
+  --color-cx-subtle: #9c9c9c;      /* Neutrals/400 */
+  --font-geist: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;     /* body / UI */
+  --font-michroma: "Michroma", "Geist Mono", ui-sans-serif, sans-serif;        /* headings, logo */
+  --container-cx: 1189px;
+
+  /* App palette — dashboard + auth share the marketing site's dark/red look (one theme, no toggle).
+     Token names are kept from the original dashboard so components didn't need renaming:
+     "blue"/"royal" are the brand accent, "tint-blue"/"tint-royal" are accent tints. */
+  --color-bd-primary: #ffffff;      /* headings, strong text */
+  --color-bd-blue: #e12632;         /* accent — active nav, links */
+  --color-bd-royal: #e12632;        /* accent — buttons, primary chart series */
+  --color-bd-teal: #3a9e94;         /* secondary chart series */
+  --color-bd-pink: #b8657f;
+  --color-bd-green: #3d9e7c;        /* healthy / resolved — status colours are muted for the dark UI */
+  --color-bd-red: #d14b4b;          /* critical / errors */
+  --color-bd-orange: #c9a03c;       /* medium severity / warnings */
+  --color-bd-magenta: #fc00ff;
+
+  /* neutrals */
+  --color-bd-text: #e6e6e6;
+  --color-bd-dark: #bebebe;
+  --color-bd-muted: #9c9c9c;        /* labels, axis, secondary text */
+  --color-bd-placeholder: #5a5a5a;
+  --color-bd-nav: #8d8d8d;          /* inactive nav */
+  --color-bd-page: #010101;         /* page background */
+  --color-bd-input: #1a1a1a;
+  --color-bd-border: #212121;
+  --color-bd-card-border: #2a2a2a;
+  --color-bd-grid: #1a1a1a;
+  --color-bd-icon-light: #161616;
+  --color-bd-surface: #0c0c0c;      /* cards, sidebar, header, dialogs */
+  --color-bd-unread: #170a0b;       /* unread notification row */
+
+  /* soft icon-badge tints */
+  --color-bd-tint-blue: rgb(225 38 50 / 0.1);
+  --color-bd-tint-teal: rgb(58 158 148 / 0.1);
+  --color-bd-tint-yellow: rgb(201 160 60 / 0.1);
+  --color-bd-tint-pink: rgb(184 101 127 / 0.1);
+  --color-bd-tint-red: rgb(209 75 75 / 0.1);
+  --color-bd-tint-red-soft: rgb(209 75 75 / 0.08);
+  --color-bd-tint-royal: rgb(225 38 50 / 0.12);
+
+
+  --shadow-bd: 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+  --radius-bd: 8px;
+
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-geist);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+/* shadcn variables mapped to the app palette */
+:root {
+  color-scheme: dark;
+  --bd-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --radius: 0.5rem;
+  --background: #0c0c0c;
+  --foreground: #e6e6e6;
+  --card: #0c0c0c;
+  --card-foreground: #e6e6e6;
+  --popover: #0c0c0c;
+  --popover-foreground: #e6e6e6;
+  --primary: #e12632;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a1a;
+  --muted-foreground: #9c9c9c;
+  --accent: #1a1a1a;
+  --accent-foreground: #ffffff;
+  --destructive: #d14b4b;
+  --border: #212121;
+  --input: #2a2a2a;
+  --ring: #e12632;
+  --chart-1: #e12632;
+  --chart-2: #3a9e94;
+  --chart-3: #c9a03c;
+  --chart-4: #8d8d8d;
+  --chart-5: #b8657f;
+}
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-bd-page font-sans text-bd-text;
+  }
+}
+
+/* hide scrollbar for horizontal card carousels */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Marketing site: bug cursor (hotspot = centre). Unlayered so it beats Tailwind's cursor-* utilities. */
+.site-root,
+.site-root * {
+  cursor: url("/site/brand/cursor-bug.svg") 16 16, auto;
+}
+.site-root :is(a, button, [role="button"], summary, label, select),
+.site-root :is(a, button, [role="button"], summary, label) * {
+  cursor: url("/site/brand/cursor-bug-active.svg") 16 16, pointer;
+}
+.site-root :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"]), textarea, [contenteditable="true"]) {
+  cursor: text;
+}
+.site-root :is(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
+/* Animated bug cursor (src/components/site/bug-cursor.tsx). While it's on, hide the native cursor
+   everywhere (incl. portals) except text fields, where the caret is clearer. */
+html.bug-cursor-on,
+html.bug-cursor-on * {
+  cursor: none;
+}
+html.bug-cursor-on :is(input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"]), textarea, [contenteditable="true"]) {
+  cursor: text;
+}
+.bug-cursor {
+  --bug-stroke: #ffffff;
+  --bug-fill: var(--color-cx-accent);
+}
+.bug-cursor[data-state="hover"] {
+  --bug-stroke: var(--color-cx-accent);
+  --bug-fill: #ffffff;
+}
+.bug-skin {
+  stroke: var(--bug-stroke);
+  filter: drop-shadow(0 0 1px #010101) drop-shadow(0 0 2px rgba(1, 1, 1, 0.8));
+  transition: scale 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s;
+}
+.bug-body {
+  fill: var(--bug-fill);
+  transition: fill 0.3s;
+}
+.bug-cursor[data-state="hover"] .bug-skin { scale: 1.35; }
+.bug-cursor[data-state="text"] .bug-skin { scale: 0.6; opacity: 0; }
+.bug-cursor[data-pressed] .bug-skin { scale: 0.8; }
+.bug-cursor[data-state="hover"][data-pressed] .bug-skin { scale: 1.1; }
+
+/* legs pivot where they join the body; tripod gait (a/b alternate) */
+.bug-leg,
+.bug-antenna { transform-box: fill-box; }
+.bug-leg-l1 { transform-origin: right bottom; }
+.bug-leg-l2 { transform-origin: right center; }
+.bug-leg-l3 { transform-origin: right top; }
+.bug-leg-r1 { transform-origin: left bottom; }
+.bug-leg-r2 { transform-origin: left center; }
+.bug-leg-r3 { transform-origin: left top; }
+.bug-leg { animation: bug-step 0.2s linear infinite paused; }
+.bug-gait-b { animation-delay: -0.1s; }
+.bug-cursor[data-moving] .bug-leg { animation-play-state: running; }
+@keyframes bug-step {
+  0%, 100% { rotate: -18deg; }
+  50% { rotate: 18deg; }
+}
+.bug-antenna-l { transform-origin: right bottom; animation: bug-twitch 2.6s ease-in-out infinite; }
+.bug-antenna-r { transform-origin: left bottom; animation: bug-twitch 2.6s ease-in-out -1.1s infinite; }
+@keyframes bug-twitch {
+  0%, 78%, 100% { rotate: 0deg; }
+  84% { rotate: -16deg; }
+  90% { rotate: 12deg; }
+}
+
+/* Marketing-site fonts (self-hosted from public/fonts, latin subset). */
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+/* Michroma's glyphs are ~38% wider than the Mona Sans the layout was drawn with; 80% keeps
+   headings close to their designed line lengths. Single weight, so never synthesise bold. */
+@font-face {
+  font-family: "Michroma";
+  src: url("/fonts/michroma-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+  size-adjust: 80%;
+}
+/* Michroma headings app-wide (site, auth, dashboard, dialogs). */
+:is(h1, h2, h3, h4) {
+  font-family: var(--font-michroma);
+  font-weight: 400;
+  font-synthesis: none;
+}
+
+
+/* ───── Page loader (src/components/shared/loader.tsx + page-splash.tsx) ─────
+   Radar ring around the logo mark: rotating accent arc + faint wedge, pulse ring, scan line. */
+.ldr { position: relative; display: grid; place-items: center; flex-shrink: 0; }
+.ldr > span { position: absolute; border-radius: 9999px; }
+.ldr-ring { inset: 0; border: 1px solid #2a2a2a; }
+.ldr-pulse { inset: 0; border: 1px solid rgb(225 38 50 / 0.5); animation: ldr-pulse 2s ease-out infinite; }
+.ldr-arc {
+  inset: 0;
+  background: conic-gradient(from 0deg, transparent 0 62%, rgb(225 38 50 / 0.15) 72%, #e12632 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  animation: ldr-spin 1.3s linear infinite;
+}
+.ldr-wedge {
+  inset: 6%;
+  background: conic-gradient(from 0deg, transparent 0 78%, rgb(225 38 50 / 0.16) 100%);
+  animation: ldr-spin 1.3s linear infinite;
+}
+.ldr > .ldr-core { position: relative; width: 44%; height: 44%; overflow: hidden; border-radius: 0; }
+.ldr-core img { display: block; width: 100%; height: 100%; animation: ldr-flicker 3s steps(1) infinite; }
+.ldr-scan {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e12632, transparent);
+  box-shadow: 0 0 10px 2px rgb(225 38 50 / 0.55);
+  animation: ldr-scan 1.6s ease-in-out infinite alternate;
+}
+.ldr-dots::after { content: ""; display: inline-block; width: 1.5em; text-align: left; animation: ldr-dots 1.2s steps(4) infinite; }
+
+/* full-screen first-load splash */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 45%, rgb(225 38 50 / 0.08), transparent 45%),
+    linear-gradient(#ffffff06 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, #ffffff06 1px, transparent 1px) 0 0 / 44px 44px,
+    #010101;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+.splash > div { transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.splash-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-hide > div { transform: scale(1.06); }
+.splash-msgs { display: inline-grid; text-align: left; }
+.splash-msgs > span { grid-area: 1 / 1; opacity: 0; white-space: nowrap; animation: ldr-msg 3.6s infinite; }
+.splash-caret { color: #e12632; animation: ldr-blink 1s steps(1) infinite; }
+.splash-bar { position: relative; display: block; width: 220px; height: 2px; overflow: hidden; background: #212121; }
+.splash-bar > span { position: absolute; inset: 0 auto 0 0; width: 40%; background: #e12632; box-shadow: 0 0 8px rgb(225 38 50 / 0.7); animation: ldr-bar 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite; }
+
+@keyframes ldr-spin { to { transform: rotate(360deg); } }
+@keyframes ldr-pulse { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.55); opacity: 0; } }
+@keyframes ldr-scan { from { top: 0; } to { top: calc(100% - 2px); } }
+@keyframes ldr-flicker { 0%, 100% { opacity: 1; } 92% { opacity: 0.55; } 94% { opacity: 1; } 96% { opacity: 0.7; } }
+@keyframes ldr-dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+@keyframes ldr-msg { 0%, 100% { opacity: 0; transform: translateY(4px); } 4%, 29% { opacity: 1; transform: none; } 33% { opacity: 0; transform: translateY(-4px); } }
+@keyframes ldr-blink { 50% { opacity: 0; } }
+@keyframes ldr-bar { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ldr *, .ldr-dots::after, .splash *, .splash { animation: none !important; }
+  .splash-msgs > span:first-child { opacity: 1; }
+}
